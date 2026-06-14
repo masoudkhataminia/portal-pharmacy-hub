@@ -10,6 +10,8 @@ servers:
 tags:
   - name: health
     description: Health operations
+  - name: tools
+    description: Tool management
 paths:
   /healthz:
     get:
@@ -24,6 +26,90 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/HealthStatus"
+  /tools:
+    get:
+      operationId: listTools
+      tags: [tools]
+      summary: List all tools
+      description: Returns all configured workflow tools
+      responses:
+        "200":
+          description: List of tools
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Tool"
+    post:
+      operationId: createTool
+      tags: [tools]
+      summary: Add a tool
+      description: Adds a new workflow tool
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateToolBody"
+      responses:
+        "201":
+          description: Created tool
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Tool"
+  /tools/{id}:
+    put:
+      operationId: updateTool
+      tags: [tools]
+      summary: Update a tool
+      description: Updates an existing workflow tool
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateToolBody"
+      responses:
+        "200":
+          description: Updated tool
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Tool"
+        "404":
+          description: Tool not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+    delete:
+      operationId: deleteTool
+      tags: [tools]
+      summary: Delete a tool
+      description: Removes a workflow tool
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "204":
+          description: Deleted
+        "404":
+          description: Tool not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
 components:
   schemas:
     HealthStatus:
@@ -33,4 +119,45 @@ components:
           type: string
       required:
         - status
-
+    Tool:
+      type: object
+      properties:
+        id:
+          type: string
+        title:
+          type: string
+        description:
+          type: string
+        icon:
+          type: string
+        url:
+          type: string
+      required:
+        - id
+        - title
+        - description
+        - icon
+        - url
+    CreateToolBody:
+      type: object
+      properties:
+        title:
+          type: string
+        description:
+          type: string
+        icon:
+          type: string
+        url:
+          type: string
+      required:
+        - title
+        - description
+        - icon
+        - url
+    ErrorResponse:
+      type: object
+      properties:
+        error:
+          type: string
+      required:
+        - error

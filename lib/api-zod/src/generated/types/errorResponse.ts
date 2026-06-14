@@ -6,7 +6,6 @@
  * OpenAPI spec version: 0.1.0
  */
 
-export * from './createToolBody';
-export * from './errorResponse';
-export * from './healthStatus';
-export * from './tool';
+export interface ErrorResponse {
+  error: string;
+}

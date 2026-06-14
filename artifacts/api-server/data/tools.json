@@ -1,0 +1,23 @@
+[
+  {
+    "id": "safety-net-claim-assistant",
+    "title": "Safety Net Claim Assistant",
+    "description": "Streamline Safety Net entitlement checks, claim lodgement, and concession card validation for eligible patients.",
+    "icon": "shield",
+    "url": "https://safetynetclaimappv-08-zip.replit.app/"
+  },
+  {
+    "id": "webster-pack-manager",
+    "title": "Webster Pack Manager",
+    "description": "Manage blister-pack schedules, special orders, and dispensing records for weekly and monthly Webster packs.",
+    "icon": "package",
+    "url": "https://webster-pack-pro-v-235-special-orders-testedzip.replit.app/"
+  },
+  {
+    "id": "direction-assistant",
+    "title": "Direction Assistant",
+    "description": "Generate clear, plain-language dispensing directions and counselling notes tailored to each patient's medication regimen.",
+    "icon": "book",
+    "url": "https://547408d4-3b88-4ba6-a67b-7b91f3ee12a9-00-1qsjpwozxhw3k.kirk.replit.dev/"
+  }
+]

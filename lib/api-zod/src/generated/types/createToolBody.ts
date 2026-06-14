@@ -5,17 +5,6 @@
  * API specification
  * OpenAPI spec version: 0.1.0
  */
-export interface HealthStatus {
-  status: string;
-}
-
-export interface Tool {
-  id: string;
-  title: string;
-  description: string;
-  icon: string;
-  url: string;
-}
 
 export interface CreateToolBody {
   title: string;
@@ -23,8 +12,3 @@ export interface CreateToolBody {
   icon: string;
   url: string;
 }
-
-export interface ErrorResponse {
-  error: string;
-}
-
