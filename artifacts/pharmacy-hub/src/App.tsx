@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 
 const queryClient = new QueryClient();
@@ -72,6 +73,24 @@ function ExternalLinkIcon() {
   );
 }
 
+function SearchIcon() {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" className="search-icon">
+      <circle cx="11" cy="11" r="8" />
+      <line x1="21" y1="21" x2="16.65" y2="16.65" />
+    </svg>
+  );
+}
+
+function ClearIcon() {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.5} strokeLinecap="round" strokeLinejoin="round" style={{ width: 14, height: 14 }}>
+      <line x1="18" y1="6" x2="6" y2="18" />
+      <line x1="6" y1="6" x2="18" y2="18" />
+    </svg>
+  );
+}
+
 function ToolCard({ tool }: { tool: typeof tools[0] }) {
   return (
     <div className="tool-card">
@@ -97,6 +116,13 @@ function ToolCard({ tool }: { tool: typeof tools[0] }) {
 }
 
 function App() {
+  const [query, setQuery] = useState("");
+
+  const filtered = tools.filter((t) => {
+    const q = query.toLowerCase();
+    return t.title.toLowerCase().includes(q) || t.description.toLowerCase().includes(q);
+  });
+
   return (
     <QueryClientProvider client={queryClient}>
       <div className="hub-root">
@@ -117,11 +143,49 @@ function App() {
             </p>
           </div>
 
-          <div className="tools-grid">
-            {tools.map((tool) => (
-              <ToolCard key={tool.title} tool={tool} />
-            ))}
+          <div className="search-wrap">
+            <div className="search-field">
+              <SearchIcon />
+              <input
+                type="text"
+                className="search-input"
+                placeholder="Search tools…"
+                value={query}
+                onChange={(e) => setQuery(e.target.value)}
+                aria-label="Search tools"
+              />
+              {query && (
+                <button
+                  className="search-clear"
+                  onClick={() => setQuery("")}
+                  aria-label="Clear search"
+                >
+                  <ClearIcon />
+                </button>
+              )}
+            </div>
           </div>
+
+          {filtered.length > 0 ? (
+            <div className="tools-grid">
+              {filtered.map((tool) => (
+                <ToolCard key={tool.title} tool={tool} />
+              ))}
+            </div>
+          ) : (
+            <div className="empty-state">
+              <div className="empty-state-icon">
+                <SearchIcon />
+              </div>
+              <p className="empty-state-title">No tools found</p>
+              <p className="empty-state-sub">
+                Try a different keyword, or{" "}
+                <button className="empty-state-clear" onClick={() => setQuery("")}>
+                  clear the search
+                </button>
+              </p>
+            </div>
+          )}
         </main>
 
         <footer className="hub-footer">
