@@ -1,0 +1,1 @@
+- [Artifact port registration](artifact-port-registration.md) — new artifact ports must be added to .replit via verifyAndReplaceDotReplit or workflow health check always fails
