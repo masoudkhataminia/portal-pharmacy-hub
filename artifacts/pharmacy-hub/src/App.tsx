@@ -9,7 +9,6 @@ const tools = [
       "Streamline Safety Net entitlement checks, claim lodgement, and concession card validation for eligible patients.",
     icon: "shield",
     url: "https://safetynetclaimappv-08-zip.replit.app/",
-    accent: "#0284c7",
   },
   {
     title: "Webster Pack Manager",
@@ -17,7 +16,6 @@ const tools = [
       "Manage blister-pack schedules, special orders, and dispensing records for weekly and monthly Webster packs.",
     icon: "package",
     url: "https://webster-pack-pro-v-235-special-orders-testedzip.replit.app/",
-    accent: "#0d9488",
   },
   {
     title: "Direction Assistant",
@@ -25,7 +23,6 @@ const tools = [
       "Generate clear, plain-language dispensing directions and counselling notes tailored to each patient's medication regimen.",
     icon: "book",
     url: "https://547408d4-3b88-4ba6-a67b-7b91f3ee12a9-00-1qsjpwozxhw3k.kirk.replit.dev/",
-    accent: "#7c3aed",
   },
 ];
 
@@ -59,7 +56,7 @@ function BookIcon() {
 
 function ActivityIcon() {
   return (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" style={{ width: 18, height: 18 }}>
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" style={{ width: 16, height: 16 }}>
       <polyline points="22 12 18 12 15 21 9 3 6 12 2 12" />
     </svg>
   );
@@ -67,7 +64,7 @@ function ActivityIcon() {
 
 function ExternalLinkIcon() {
   return (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" style={{ width: 16, height: 16 }}>
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" style={{ width: 15, height: 15 }}>
       <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6" />
       <polyline points="15 3 21 3 21 9" />
       <line x1="10" y1="14" x2="21" y2="3" />
@@ -78,9 +75,8 @@ function ExternalLinkIcon() {
 function ToolCard({ tool }: { tool: typeof tools[0] }) {
   return (
     <div className="tool-card">
-      <div className="tool-card-accent" style={{ background: tool.accent }} />
       <div className="tool-card-body">
-        <div className="tool-icon-wrap" style={{ color: tool.accent }}>
+        <div className="tool-icon-wrap">
           {tool.icon === "shield" && <ShieldIcon />}
           {tool.icon === "package" && <PackageIcon />}
           {tool.icon === "book" && <BookIcon />}
@@ -92,7 +88,6 @@ function ToolCard({ tool }: { tool: typeof tools[0] }) {
           target="_blank"
           rel="noopener noreferrer"
           className="tool-btn"
-          style={{ background: tool.accent }}
         >
           Open Tool <ExternalLinkIcon />
         </a>
@@ -111,7 +106,6 @@ function App() {
               <ActivityIcon />
               <span>PharmacyHub</span>
             </div>
-            <p className="hub-tagline">Clinical workflow tools for pharmacy professionals</p>
           </div>
         </header>
 
@@ -119,8 +113,7 @@ function App() {
           <div className="hub-intro">
             <h1 className="hub-title">Pharmacy Workflow Hub</h1>
             <p className="hub-subtitle">
-              Select a tool below to get started. Each assistant is purpose-built for
-              daily dispensary tasks, helping your team work faster and more accurately.
+              Central access point for pharmacy workflow tools.
             </p>
           </div>
 
