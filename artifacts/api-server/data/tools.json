@@ -19,5 +19,12 @@
     "description": "Generate clear, plain-language dispensing directions and counselling notes tailored to each patient's medication regimen.",
     "icon": "book",
     "url": "https://medi-schedule.replit.app/"
+  },
+  {
+    "id": "7a52efb1-0269-4f72-8117-2ad7b66ba469",
+    "title": "Discharge Reports",
+    "description": "Generate and manage patient discharge medication reports and summaries for seamless care transitions.",
+    "icon": "grid",
+    "url": "https://asset-manager-masoudkhatamini.replit.app/"
   }
 ]
