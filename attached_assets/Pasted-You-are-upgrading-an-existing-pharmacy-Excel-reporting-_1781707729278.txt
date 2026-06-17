@@ -1,0 +1,762 @@
+You are upgrading an existing pharmacy Excel reporting web app.
+
+This is an upgrade, not a rebuild.
+
+CRITICAL RULES:
+
+1. Do not rebuild the whole app.
+2. Do not redesign existing working parts.
+3. Do not remove existing functionality.
+4. Do not change the current patient-block Excel report layout unless explicitly required below.
+5. Do not create unnecessary dashboards or extra sheets by default.
+6. Do not combine multiple medications into one cell.
+7. Every medication must stay in its own separate row.
+8. Only add the requested intelligent review, correction, saving, and analytics features.
+9. The final Excel file must open in Microsoft Excel without repair warnings.
+10. Accuracy and editability are more important than decoration.
+
+The app must become an intelligent pharmacy finance reconciliation tool, not only a static Excel generator.
+
+OVERALL WORKFLOW:
+
+The app should work like this:
+
+1. Upload files
+2. Analyse and match data
+3. Show interactive review and correction screen
+4. Allow user to fix/edit/confirm/exclude records
+5. Allow user to select optional analytics/report sections
+6. Generate final Excel report
+7. Allow saving/finalizing the report for that month
+
+Do not jump directly from upload to final Excel.
+
+The correct flow is:
+
+Upload
+→ Analyse & Match
+→ Review / Edit / Confirm
+→ Select report sections
+→ Generate Excel
+→ Save finalized report
+
+SOURCE FILES:
+
+Required:
+
+1. Monthly patient report
+2. Dispensed scripts report
+
+Optional:
+3. My Pack / DAA patient list file
+
+The optional DAA/My Pack file may be:
+
+* Excel
+* CSV
+* Word document
+* PDF
+* text file
+* copied text
+* exported report from My Pack website
+
+If the optional DAA file is not provided, the app must not fail.
+
+DATA FIELD MAPPING:
+
+Monthly patient report:
+
+* Patient Name = monthly patient name
+* HRN = Client’s HRN
+* Hospital/Site = Site
+* Ward = Ward
+* Entitlement = Client’s Entitlement
+* CTG = Client’s CTG eligibility
+* Total Charges = patient-level cross-check total
+
+Dispensed scripts report:
+
+* Patient First Name
+* Patient Last Name
+* Script Number
+* Dispense Date
+* Drug Description
+* Quantity
+* Deferred
+* Avg W/S Cost
+* Patient Price
+* Prescriber First Name
+* Prescriber Last Name
+* Patient Birth Date if available
+* Patient Medicare if available
+* Patient ID if available
+
+Important:
+Do not auto-detect name columns by searching for the word “Name”.
+
+For script patient matching, use ONLY:
+
+* Patient First Name
+* Patient Last Name
+
+Do NOT use these fields as patient name fields:
+
+* Brand Name
+* Generic Name
+* Drug Description
+* Patient Address
+* Patient Suburb
+* Patient State
+* Patient Post Code
+* Prescriber First Name
+* Prescriber Last Name
+* Patient Price
+* Medicare
+* Patient ID
+* Patient Facility
+
+Brand Name and Generic Name are medication fields, not patient name fields.
+
+PATIENT MATCHING:
+
+Use intelligent AI-assisted patient matching.
+
+Monthly report:
+
+* Patient Name is one full-name column
+
+Scripts report:
+
+* Patient First Name
+* Patient Last Name
+
+Build script full name as:
+Patient First Name + " " + Patient Last Name
+
+Before matching, normalize names:
+
+* lowercase
+* trim spaces
+* collapse multiple spaces
+* remove text inside parentheses
+* remove commas and full stops
+* preserve hyphenated names
+* handle reversed name order
+* handle middle names
+* handle missing middle names
+* handle initials
+* handle minor spelling differences
+* handle capitalization differences
+
+Examples:
+Marylou Rivas-Slone must match Marylou + Rivas-Slone (RDH)
+Nanette Fairall must match Nanette + Fairall
+Reginald Mcnamara must match Reginald + Mcnamara
+Clinton Dixon may match Clinton Ronson Dixon, but mark review required unless confidence is very high.
+
+Do not require DOB.
+Do not block matching because DOB is missing.
+Do not use HRN / Patient ID as primary matching unless proven reliable.
+
+Matching order:
+
+1. Exact normalized full-name match
+2. AI-assisted intelligent name matching
+3. Fuzzy matching backup
+4. If no reliable match, mark as NO SCRIPT NAME FOUND IN SOURCE FILE
+
+Every match must have:
+
+* Match Status
+* Match Method
+* Match Confidence
+* Review Notes
+
+Confidence guide:
+100 = exact normalized full-name match
+95–99 = AI-assisted very strong match
+85–94 = strong AI/fuzzy match, review recommended
+75–84 = possible match, needs review
+below 75 = do not auto-match
+
+Do not silently accept uncertain matches.
+
+DATA EXCLUSIONS BEFORE MATCHING:
+
+Before matching, calculation, counting, or reporting, exclude:
+
+1. Administrative discharge placeholder rows:
+   Remove any Drug Description containing:
+
+* RDH DISCHARGE
+* PRH DISCHARGE
+* ASH DISCHARGE
+* equivalent non-medication discharge placeholders
+
+2. Deferred rows:
+   Only use the actual column named Deferred.
+   Exclude if Deferred = Yes / Y / TRUE / 1.
+
+Do not use CTG Script or Electronic Prescription as Deferred.
+
+Do not remove scripts by month/date.
+Do not remove “other-month” records.
+If a dispense date is outside the expected month, keep it and add a note.
+
+MEDICATION RULES:
+
+For medicines:
+
+* Use Drug Description exactly as supplied after basic spacing cleanup.
+* Do not convert brand to generic.
+* Do not group brand and generic together.
+* Do not replace medicine names.
+* Do not classify by drug class.
+* Do not merge medicines based on active ingredient.
+* Each dispensed medication row remains separate unless it is a true duplicate.
+
+Hospital report Cost:
+Use Patient Price from the scripts report.
+
+Do not use Avg W/S Cost as the hospital Cost unless separately requested.
+
+INTERACTIVE REVIEW SCREEN:
+
+After initial analysis/matching, before Excel generation, show an interactive review screen.
+
+The user must be able to review and correct:
+
+1. Matched patients
+2. Unmatched scripts
+3. Needs review matches
+4. Cost mismatches
+5. Patients with no confirmed dispensed medicines
+6. Excluded discharge placeholder rows
+7. Deferred rows
+8. Optional analytics/report sections
+
+Do not only show problems.
+The user must be able to fix problems.
+
+For each matched patient, show medication rows with:
+
+* Include checkbox
+* Script Number
+* Dispense Date
+* Drug Description
+* Quantity
+* Patient Price
+* Avg W/S Cost if available
+* Prescriber if available
+* Notes / flags
+* Edit button or inline editable fields
+
+The user must be able to:
+
+* Tick/untick each medication row
+* Edit Patient Price
+* Edit Quantity
+* Add a correction note
+* Restore original values
+
+If a medication is unticked:
+
+* it must not appear in the final report
+* it must not count in medication count
+* it must not count in script count if no included items remain for that script
+* it must not contribute to patient total cost
+* it should be recorded internally as user-excluded
+
+MANUALLY ADD DISPENSED MEDICATION:
+
+For any patient, especially patients where no script was found, add an option:
+
+Add Dispensed Medication Manually
+
+This is required.
+
+The user must be able to manually add a dispensed medication row for a patient if the medication is missing from the scripts file or not matched correctly.
+
+Manual medication entry fields:
+
+* Script Number
+* Dispense Date
+* Prescriber
+* Drug Description
+* Quantity
+* Patient Price
+* Avg W/S Cost optional
+* CTG Script optional
+* Notes / reason for manual addition
+
+Manual entries must:
+
+* appear in the final report under that patient
+* count in medication count
+* count in script count
+* contribute to patient total cost
+* be marked as Manual Added
+* be recorded in the correction log with original source = manual
+
+The user must also be able to delete/remove a manually added medication before finalizing.
+
+Manual added rows should have Review Notes:
+“Manually added by user”
+
+COST RECONCILIATION:
+
+For each patient, show a live reconciliation panel:
+
+* Monthly Total Charges
+* Calculated total from included medication rows
+* Difference
+* Status:
+
+  * Matched
+  * Difference
+  * Needs review
+  * No scripts
+  * Manually corrected
+
+When the user edits a price, changes quantity, unticks a medication, or manually adds medication, the calculated total and difference must update immediately.
+
+If there is a difference, show which medication rows contribute to the total.
+
+Do not only display financial mismatch.
+Make it editable and fixable.
+
+MANUAL MATCH CONFIRMATION:
+
+For all Unmatched Scripts, Needs Review matches, low-confidence AI/fuzzy matches, or ambiguous matches, show a manual review screen.
+
+For each uncertain script patient, show:
+
+Script-side patient information:
+
+* Script Patient First Name
+* Script Patient Last Name
+* Cleaned script full name
+* DOB if available
+* Medicare if available
+* Patient ID if available
+* Address/Suburb if available
+* Number of scripts
+* Number of medication rows
+* Total Patient Price
+* Example medication names
+
+Closest monthly patient candidates:
+
+* Monthly Patient Name
+* HRN
+* Hospital/Site
+* Ward
+* Entitlement
+* CTG
+* Monthly Total Charges
+* Match score
+* Match reason
+
+The user must be able to choose:
+
+1. Confirm suggested match
+2. Search/select another monthly patient
+3. Reject/exclude the script patient from final report
+4. Leave unresolved
+
+If manually confirmed:
+
+* Include those script rows under the selected patient
+* Match Method = Manual Confirmed
+* Match Status = Confirmed
+* Review Notes = Manually confirmed by user
+
+If manually selected:
+
+* Include those script rows under the selected patient
+* Match Method = Manual Selected
+* Review Notes = Manually selected by user
+
+If rejected/excluded:
+
+* Do not include those script rows in the final patient report
+* Do not include their cost in totals
+
+If unresolved:
+
+* Do not include them in final report
+
+Uncertain scripts must not be silently included.
+
+OPTIONAL DAA / MY PACK FILE:
+
+The optional third file is only for determining:
+
+Packed in DAA = YES / NO
+
+If patient name is found in My Pack / DAA file:
+Packed in DAA = YES
+
+If not found:
+Packed in DAA = NO
+
+If DAA file is not provided:
+Packed in DAA = blank or NOT PROVIDED
+
+Do not use the DAA file for:
+
+* medication matching
+* cost calculation
+* script count
+* patient charge
+* adding medication rows
+* removing medication rows
+* changing patient details
+
+Only extract patient names and match them to monthly patient names.
+
+DAA name matching should normalize:
+
+* lowercase
+* trim spaces
+* collapse spaces
+* remove commas/full stops
+* remove text inside parentheses
+* preserve hyphenated names
+* allow reversed name order
+* allow middle names / missing middle names
+* fuzzy matching if needed
+
+If DAA match is fuzzy:
+Packed in DAA = YES
+Review Notes should include:
+DAA fuzzy match — manual confirmation recommended
+
+HOSPITAL REQUIRED FIELDS IN FINAL REPORT:
+
+Final report must include:
+
+1. Site
+   Source: Monthly Hospital/Site field
+
+2. Ward
+   Source: Monthly Ward field
+
+3. Date
+   Source: Script Dispense Date
+   Assume dispense date represents discharge supply date for reporting.
+
+4. Admission Episode Number
+   If not available, leave blank.
+   Do not invent it.
+   Do not use Script Number or Patient ID.
+
+5. Client’s HRN
+   Source: Monthly HRN
+   Format as text.
+   Preserve leading zeros.
+   If numeric HRN is shorter than 7 digits, left-pad with zeros.
+
+6. Client’s Entitlement
+   Source: Monthly Entitlement
+
+7. Client’s CTG eligibility
+   Source: Monthly CTG
+   Output YES / NO where possible.
+
+8. Medicine Name, Strength, Form & Pack Size
+   Source: Script Drug Description
+
+9. Quantity
+   Source: Script Quantity or corrected quantity if user edited it
+
+10. Cost
+    Source: Script Patient Price or corrected Patient Price if user edited it
+
+11. Packed in DAA
+    Source: optional My Pack / DAA file only
+
+REPORT OPTIONS:
+
+Before generating final Excel, show a section:
+
+Report Options
+
+The user can tick/untick optional sections.
+
+Main medication report is always included.
+
+Optional sections:
+
+* Summary Analysis
+* Cost Summary
+* CTG Patient Summary
+* Safety Net Patient Summary
+* Patients With No Confirmed Medicines
+* DAA / Webster Pack Patients
+* High-Cost Patients
+* Top Dispensed Medicines
+* Most Expensive Medicines
+* Daily Discharge / Dispense Volume Chart
+* Excluded Administrative Discharge Rows Analysis
+* Deferred Rows Analysis
+* Manual Corrections Log
+* Matching Review Log
+
+Do not automatically add every possible sheet.
+Only include sections selected by the user.
+
+USEFUL ANALYTICS IF SELECTED:
+
+A. Overall Summary
+
+* Total patients
+* Total patients with confirmed medications
+* Total patients with no confirmed medications
+* Total scripts
+* Total medication items
+* Total medication cost
+* Average cost per patient
+* Average cost per medication item
+* Highest cost patient
+* Highest cost medicine
+
+B. CTG Summary
+
+* Number of CTG eligible patients
+* Total cost for CTG patients
+* Average cost for CTG patients
+* CTG vs non-CTG comparison
+
+C. Safety Net Summary
+
+* Number of Safety Net patients if field is available
+* Total Safety Net cost
+* Safety Net medication count
+
+D. DAA / Webster Pack Summary
+
+* Patients marked Packed in DAA = YES
+* Total DAA patients
+* Cost for DAA patients
+* Medication count for DAA patients
+
+E. High-Cost Patients
+Allow configurable threshold.
+Default threshold = $100.
+Show:
+
+* Patient name
+* HRN
+* Ward
+* Total medication cost
+* Top cost-driving medicines
+
+F. Top Dispensed Medicines
+Show most frequently dispensed Drug Descriptions.
+Do not group brand/generic unless explicitly requested.
+
+G. Most Expensive Medicines
+Show medicines ranked by Patient Price.
+
+H. Daily Discharge / Dispense Volume
+Use Script Dispense Date.
+Assume dispense date represents discharge supply date.
+Show count of patients/scripts/items per day.
+Include chart only if selected.
+
+I. Patients With No Confirmed Medicines
+Show patients from monthly report where no script rows were confirmed after matching/manual review.
+
+J. Excluded Rows Analysis
+Only if selected:
+
+* count of discharge placeholder rows removed
+* count of deferred rows removed
+  Do not include excluded rows in main report.
+
+SAVING AND FINALIZING REPORTS:
+
+Add ability to save a finalized report.
+
+After review and confirmation, provide:
+
+Save Finalized Report
+
+User should enter:
+
+* Report Month
+* Report Year
+* Report Name
+
+Example:
+May 2026
+June 2026
+
+Saved finalized report should store:
+
+* finalized patient matches
+* manual confirmations
+* rejected/unresolved script patients
+* excluded medication rows
+* manually added medication rows
+* corrected prices
+* corrected quantities
+* selected optional report sections
+* generated Excel file reference
+* timestamp
+
+This supports future monthly comparisons:
+
+* number of admissions/episodes per patient across months
+* repeat patients
+* month-to-month cost changes
+* patients appearing in multiple monthly reports
+
+If a full database is not necessary, use a simple local database / JSON / SQLite structure.
+
+FINALIZED REPORT LOCKING:
+
+Once a report is finalized, mark it as:
+
+Finalized
+
+A finalized report should not be silently overwritten.
+
+If the user needs changes after finalization, create:
+
+Revised Version
+
+Store version history:
+
+* original finalized version
+* revised version number
+* timestamp
+* correction summary
+
+ORIGINAL VS CORRECTED VALUES:
+
+Whenever the user edits:
+
+* Patient Price
+* Quantity
+* Patient match
+* medication inclusion
+* manual added medication
+
+Store:
+
+* original value
+* corrected value
+* correction reason/note
+* user action type
+* timestamp if available
+
+This should be available in the Manual Corrections Log if selected.
+
+HIGH-COST THRESHOLD:
+
+High-cost patient threshold should be configurable in the app.
+
+Default:
+$100
+
+The user should be able to change it before generating the report.
+
+DO NOT INCLUDE UNRESOLVED ITEMS:
+
+Any unmatched, ambiguous, or unresolved script patient must not be included in the main final report unless manually confirmed or selected.
+
+Unresolved items can be included only in review/audit log if that optional section is selected.
+
+PREVIEW BEFORE DOWNLOAD:
+
+Before downloading/generating final Excel, show a final preview summary:
+
+* Total patients
+* Patients with confirmed medications
+* Patients with no confirmed medications
+* Total included medications
+* Total included scripts
+* Total included cost
+* Number of manually confirmed matches
+* Number of manually selected matches
+* Number of rejected script patients
+* Number of manually added medications
+* Number of edited prices
+* Number of edited quantities
+* Number of excluded medications
+* Number of unresolved items excluded
+* Selected optional report sections
+
+The user must confirm before final Excel generation.
+
+FINAL EXCEL OUTPUT:
+
+Main report must come first.
+
+Main report layout:
+
+* patient header row
+* medication rows
+* patient subtotal row
+* next patient
+
+Every medication must be its own row.
+
+Final report must include:
+
+* patient details
+* hospital required fields
+* medication rows
+* cost per medication
+* patient total
+* match status
+* packed in DAA
+* review notes
+* manual correction notes if applicable
+
+Optional selected analysis sections may be added after the main report.
+
+Do not create unnecessary sheets.
+Only create sheets selected in Report Options.
+
+AUDIT AND CORRECTION LOG:
+
+If selected, generate a correction log showing:
+
+* manually confirmed matches
+* manually selected matches
+* rejected script patients
+* unresolved script patients
+* excluded medication rows
+* manually added medication rows
+* edited prices
+* edited quantities
+* original value
+* corrected value
+* reason/note
+* timestamp if available
+
+FINAL VALIDATION BEFORE EXPORT:
+
+Before Excel generation, validate:
+
+1. No RDH / PRH / ASH DISCHARGE rows in main report
+2. No Deferred rows in main report
+3. No random placeholder values in blank cells
+4. Every medication is one row
+5. Patient Price is used as hospital Cost
+6. CTG, Entitlement, Ward, Site, HRN are present where source provides them
+7. Packed in DAA comes only from optional My Pack file
+8. Uncertain matches are either manually confirmed or excluded
+9. Edited prices are reflected in totals
+10. Edited quantities are reflected in totals
+11. Unticked medications are excluded from totals
+12. Manually added medications are included in totals
+13. Unresolved items are excluded from the main report
+14. Final Excel opens without repair warnings
+
+MOST IMPORTANT:
+The app must not just detect errors.
+It must let the user fix them before generating the final report.
