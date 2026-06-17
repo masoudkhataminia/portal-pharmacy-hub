@@ -1,5 +1,76 @@
 import { useState } from "react";
 import { QueryClient, QueryClientProvider, useQueryClient } from "@tanstack/react-query";
+
+const AUTH_KEY = "ph_auth";
+const VALID_USER = "hibiscus";
+const VALID_PASS = "hibiscus";
+
+function LoginScreen({ onLogin }: { onLogin: () => void }) {
+  const [username, setUsername] = useState("");
+  const [password, setPassword] = useState("");
+  const [error, setError] = useState(false);
+  const [loading, setLoading] = useState(false);
+
+  function handleSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    setError(false);
+    setLoading(true);
+    setTimeout(() => {
+      if (username.trim().toLowerCase() === VALID_USER && password === VALID_PASS) {
+        localStorage.setItem(AUTH_KEY, "1");
+        onLogin();
+      } else {
+        setError(true);
+        setLoading(false);
+      }
+    }, 400);
+  }
+
+  return (
+    <div className="login-root">
+      <div className="login-glow" />
+      <div className="login-card">
+        <div className="login-logo">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" className="login-logo-icon">
+            <polyline points="22 12 18 12 15 21 9 3 6 12 2 12" />
+          </svg>
+          <span>PharmacyHub</span>
+        </div>
+        <h1 className="login-title">Sign in</h1>
+        <p className="login-subtitle">Internal use only. Authorised staff only.</p>
+        <form className="login-form" onSubmit={handleSubmit}>
+          <label className="login-label">
+            Username
+            <input
+              className={`login-input${error ? " login-input-error" : ""}`}
+              type="text"
+              autoComplete="username"
+              value={username}
+              onChange={(e) => { setUsername(e.target.value); setError(false); }}
+              placeholder="Enter username"
+              autoFocus
+            />
+          </label>
+          <label className="login-label">
+            Password
+            <input
+              className={`login-input${error ? " login-input-error" : ""}`}
+              type="password"
+              autoComplete="current-password"
+              value={password}
+              onChange={(e) => { setPassword(e.target.value); setError(false); }}
+              placeholder="Enter password"
+            />
+          </label>
+          {error && <p className="login-error">Incorrect username or password.</p>}
+          <button className="login-btn" type="submit" disabled={loading}>
+            {loading ? "Signing in…" : "Sign In"}
+          </button>
+        </form>
+      </div>
+    </div>
+  );
+}
 import {
   useListTools,
   useCreateTool,
@@ -261,7 +332,7 @@ function AdminPanel({ onClose }: { onClose: () => void }) {
   );
 }
 
-function HubContent() {
+function HubContent({ onLogout }: { onLogout: () => void }) {
   const { data: tools, isLoading, isError } = useListTools();
   const qc = useQueryClient();
   const deleteTool = useDeleteTool({
@@ -291,14 +362,19 @@ function HubContent() {
             <ActivityIcon />
             <span>PharmacyHub</span>
           </div>
-          <button
-            className={`admin-toggle-btn${adminOpen ? " active" : ""}`}
-            onClick={() => setAdminOpen((o) => !o)}
-            title="Admin panel"
-          >
-            <SettingsIcon />
-            <span>Admin</span>
-          </button>
+          <div style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
+            <button
+              className={`admin-toggle-btn${adminOpen ? " active" : ""}`}
+              onClick={() => setAdminOpen((o) => !o)}
+              title="Admin panel"
+            >
+              <SettingsIcon />
+              <span>Admin</span>
+            </button>
+            <button className="logout-btn" onClick={onLogout} title="Sign out">
+              Sign Out
+            </button>
+          </div>
         </div>
       </header>
 
@@ -381,9 +457,15 @@ function HubContent() {
 }
 
 function App() {
+  const [authed, setAuthed] = useState(() => localStorage.getItem(AUTH_KEY) === "1");
+
+  if (!authed) {
+    return <LoginScreen onLogin={() => setAuthed(true)} />;
+  }
+
   return (
     <QueryClientProvider client={queryClient}>
-      <HubContent />
+      <HubContent onLogout={() => { localStorage.removeItem(AUTH_KEY); setAuthed(false); }} />
     </QueryClientProvider>
   );
 }
