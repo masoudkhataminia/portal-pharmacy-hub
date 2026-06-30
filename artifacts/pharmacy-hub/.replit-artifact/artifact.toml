@@ -11,7 +11,7 @@ version = "1.0.0"
 
 [[services]]
 name = "web"
-paths = [ "/pharmacy-hub/" ]
+paths = [ "/pharmacy-hub/", "/" ]
 localPort = 21501
 
 [services.development]
@@ -25,6 +25,11 @@ serve = "static"
 [[services.production.rewrites]]
 from = "/*"
 to = "/index.html"
+
+[[services.production.redirects]]
+from = "/"
+to = "/pharmacy-hub/"
+status = 302
 
 [services.env]
 PORT = "21501"
