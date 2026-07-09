@@ -1,5 +1,11 @@
-import { useState } from "react";
+import { useState, type FormEvent } from "react";
 import { QueryClient, QueryClientProvider, useQueryClient } from "@tanstack/react-query";
+import {
+  useListTools,
+  useCreateTool,
+  useDeleteTool,
+} from "@workspace/api-client-react";
+import type { Tool } from "@workspace/api-client-react";
 
 const AUTH_KEY = "ph_auth";
 const VALID_USER = "hibiscus";
@@ -11,7 +17,7 @@ function LoginScreen({ onLogin }: { onLogin: () => void }) {
   const [error, setError] = useState(false);
   const [loading, setLoading] = useState(false);
 
-  function handleSubmit(e: React.FormEvent) {
+  function handleSubmit(e: FormEvent) {
     e.preventDefault();
     setError(false);
     setLoading(true);
@@ -28,55 +34,77 @@ function LoginScreen({ onLogin }: { onLogin: () => void }) {
 
   return (
     <div className="login-root">
-      <div className="login-glow" />
-      <div className="login-card">
-        <div className="login-logo">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" className="login-logo-icon">
-            <polyline points="22 12 18 12 15 21 9 3 6 12 2 12" />
-          </svg>
-          <span>PharmacyHub</span>
+      <div className="login-bg" />
+      <section className="login-shell">
+        <div className="login-hero">
+          <div className="login-hero-top">
+            <div className="login-logo login-logo-pill">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" className="login-logo-icon">
+                <polyline points="22 12 18 12 15 21 9 3 6 12 2 12" />
+              </svg>
+              <span>MyPharmacyHub</span>
+            </div>
+            <span className="login-hero-badge">Enterprise pharmacy platform</span>
+          </div>
+          <div className="login-hero-copy">
+            <p className="login-kicker">Calm healthcare operations</p>
+            <h1>A premium portal for focused pharmacy work.</h1>
+            <p>
+              Secure workspaces for daily pharmacy routines, reporting, patient programs,
+              and operational follow-through.
+            </p>
+          </div>
         </div>
-        <h1 className="login-title">Sign in</h1>
-        <p className="login-subtitle">Internal use only. Authorised staff only.</p>
-        <form className="login-form" onSubmit={handleSubmit}>
-          <label className="login-label">
-            Username
-            <input
-              className={`login-input${error ? " login-input-error" : ""}`}
-              type="text"
-              autoComplete="username"
-              value={username}
-              onChange={(e) => { setUsername(e.target.value); setError(false); }}
-              placeholder="Enter username"
-              autoFocus
-            />
-          </label>
-          <label className="login-label">
-            Password
-            <input
-              className={`login-input${error ? " login-input-error" : ""}`}
-              type="password"
-              autoComplete="current-password"
-              value={password}
-              onChange={(e) => { setPassword(e.target.value); setError(false); }}
-              placeholder="Enter password"
-            />
-          </label>
-          {error && <p className="login-error">Incorrect username or password.</p>}
-          <button className="login-btn" type="submit" disabled={loading}>
-            {loading ? "Signing in…" : "Sign In"}
-          </button>
-        </form>
-      </div>
+        <div className="login-panel">
+          <div className="login-card">
+            <div className="login-logo login-logo-mobile">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" className="login-logo-icon">
+                <polyline points="22 12 18 12 15 21 9 3 6 12 2 12" />
+              </svg>
+              <span>MyPharmacyHub</span>
+            </div>
+            <span className="login-card-badge">Secure staff access</span>
+            <h1 className="login-title">Welcome back.</h1>
+            <p className="login-subtitle">Sign in to continue to your pharmacy operations dashboard.</p>
+            <form className="login-form" onSubmit={handleSubmit}>
+              <label className="login-label">
+                Username
+                <input
+                  className={`login-input${error ? " login-input-error" : ""}`}
+                  type="text"
+                  autoComplete="username"
+                  value={username}
+                  onChange={(e) => { setUsername(e.target.value); setError(false); }}
+                  placeholder="Enter username"
+                  autoFocus
+                />
+              </label>
+              <label className="login-label">
+                Password
+                <input
+                  className={`login-input${error ? " login-input-error" : ""}`}
+                  type="password"
+                  autoComplete="current-password"
+                  value={password}
+                  onChange={(e) => { setPassword(e.target.value); setError(false); }}
+                  placeholder="Enter password"
+                />
+              </label>
+              {error && <p className="login-error">Incorrect username or password.</p>}
+              <button className="login-btn" type="submit" disabled={loading}>
+                {loading ? "Signing in..." : "Continue to Dashboard"}
+              </button>
+            </form>
+            <div className="login-note">
+              <strong>Temporary credentials</strong>
+              <span>Username hibiscus / Password hibiscus</span>
+            </div>
+          </div>
+        </div>
+      </section>
     </div>
   );
 }
-import {
-  useListTools,
-  useCreateTool,
-  useDeleteTool,
-} from "@workspace/api-client-react";
-import type { Tool } from "@workspace/api-client-react";
 
 const queryClient = new QueryClient();
 
@@ -343,7 +371,7 @@ function HubContent({ onLogout }: { onLogout: () => void }) {
   const [adminOpen, setAdminOpen] = useState(false);
   const [query, setQuery] = useState("");
 
-  const filtered = (tools ?? []).filter((t) => {
+  const filtered = (tools ?? []).filter((t: Tool) => {
     const q = query.toLowerCase();
     return t.title.toLowerCase().includes(q) || t.description.toLowerCase().includes(q);
   });
@@ -356,13 +384,17 @@ function HubContent({ onLogout }: { onLogout: () => void }) {
 
   return (
     <div className="hub-root">
+      <div className="hub-bg" />
       <header className="hub-header">
         <div className="hub-header-inner">
           <div className="hub-logo">
             <ActivityIcon />
-            <span>PharmacyHub</span>
+            <div>
+              <span>MyPharmacyHub</span>
+              <small>Premium healthcare portal</small>
+            </div>
           </div>
-          <div style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
+          <div className="hub-actions">
             <button
               className={`admin-toggle-btn${adminOpen ? " active" : ""}`}
               onClick={() => setAdminOpen((o) => !o)}
@@ -381,14 +413,32 @@ function HubContent({ onLogout }: { onLogout: () => void }) {
       {adminOpen && <AdminPanel onClose={() => setAdminOpen(false)} />}
 
       <main className="hub-main">
-        <div className="hub-intro">
-          <h1 className="hub-title">Pharmacy Workflow Hub</h1>
-          <p className="hub-subtitle">
-            Central access point for pharmacy workflow tools.
-          </p>
-        </div>
+        <section className="hub-hero">
+          <div className="hub-hero-copy">
+            <span className="hub-eyebrow">Enterprise pharmacy platform</span>
+            <h1 className="hub-title">A softer way to run every pharmacy workflow.</h1>
+            <p className="hub-subtitle">
+              Central access for clinical tools, patient programs, reporting and operational routines.
+            </p>
+            <div className="hub-hero-stats">
+              <div><strong>{tools?.length ?? "-"}</strong><span>Active tools</span></div>
+              <div><strong>{filtered.length}</strong><span>Visible now</span></div>
+              <div><strong>Secure</strong><span>Staff workspace</span></div>
+            </div>
+          </div>
+          <div className="hub-hero-image">
+            <div className="hub-hero-status">
+              <span>Workspace status</span>
+              <strong>{isLoading ? "Loading" : "Ready"}</strong>
+            </div>
+          </div>
+        </section>
 
-        <div className="search-wrap">
+        <section className="hub-toolbar">
+          <div>
+            <span className="hub-section-label">Portal tools</span>
+            <h2>Operational workspaces</h2>
+          </div>
           <div className="search-field">
             <SearchIcon />
             <input
@@ -409,7 +459,7 @@ function HubContent({ onLogout }: { onLogout: () => void }) {
               </button>
             )}
           </div>
-        </div>
+        </section>
 
         {isLoading && (
           <div className="hub-status">Loading tools…</div>
@@ -424,7 +474,7 @@ function HubContent({ onLogout }: { onLogout: () => void }) {
         {tools && (
           filtered.length > 0 ? (
             <div className="tools-grid">
-              {filtered.map((tool) => (
+              {filtered.map((tool: Tool) => (
                 <ToolCard key={tool.id} tool={tool} adminMode={adminOpen} onDelete={handleDelete} />
               ))}
             </div>
@@ -450,7 +500,7 @@ function HubContent({ onLogout }: { onLogout: () => void }) {
       </main>
 
       <footer className="hub-footer">
-        <p>© {new Date().getFullYear()} Pharmacy Workflow Hub &mdash; Internal Use Only</p>
+        <p>© {new Date().getFullYear()} MyPharmacyHub &mdash; Internal Use Only</p>
       </footer>
     </div>
   );
