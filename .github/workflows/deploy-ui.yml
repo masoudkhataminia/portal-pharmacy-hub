@@ -1,4 +1,4 @@
-name: Deploy MyPharmacyHub UI
+name: Publish MyPharmacyHub UI
 
 on:
   push:
@@ -7,19 +7,17 @@ on:
   workflow_dispatch:
 
 permissions:
-  contents: read
-  pages: write
-  id-token: write
+  contents: write
 
 concurrency:
-  group: pages
+  group: publish-ui
   cancel-in-progress: true
 
 jobs:
-  build:
+  publish:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout
+      - name: Checkout source
         uses: actions/checkout@v4
 
       - name: Setup pnpm
@@ -41,24 +39,14 @@ jobs:
         env:
           BASE_PATH: /portal-pharmacy-hub/
 
-      - name: Add SPA fallback
-        run: cp artifacts/pharmacy-hub/dist/public/index.html artifacts/pharmacy-hub/dist/public/404.html
+      - name: Prepare static output
+        run: |
+          cp artifacts/pharmacy-hub/dist/public/index.html artifacts/pharmacy-hub/dist/public/404.html
+          touch artifacts/pharmacy-hub/dist/public/.nojekyll
 
-      - name: Setup Pages
-        uses: actions/configure-pages@v5
-
-      - name: Upload Pages artifact
-        uses: actions/upload-pages-artifact@v3
+      - name: Publish static output to gh-pages
+        uses: JamesIves/github-pages-deploy-action@v4
         with:
-          path: artifacts/pharmacy-hub/dist/public
-
-  deploy:
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
-    runs-on: ubuntu-latest
-    needs: build
-    steps:
-      - name: Deploy to GitHub Pages
-        id: deployment
-        uses: actions/deploy-pages@v4
+          branch: gh-pages
+          folder: artifacts/pharmacy-hub/dist/public
+          clean: true
