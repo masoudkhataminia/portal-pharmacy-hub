@@ -44,6 +44,9 @@ jobs:
       - name: Add SPA fallback
         run: cp artifacts/pharmacy-hub/dist/public/index.html artifacts/pharmacy-hub/dist/public/404.html
 
+      - name: Setup Pages
+        uses: actions/configure-pages@v5
+
       - name: Upload Pages artifact
         uses: actions/upload-pages-artifact@v3
         with:
