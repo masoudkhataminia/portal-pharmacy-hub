@@ -1,4 +1,4 @@
-import { useState, type FormEvent } from "react";
+import { useMemo, useState, type FormEvent } from "react";
 import { QueryClient, QueryClientProvider, useQueryClient } from "@tanstack/react-query";
 import {
   useListTools,
@@ -10,6 +10,118 @@ import type { Tool } from "@workspace/api-client-react";
 const AUTH_KEY = "ph_auth";
 const VALID_USER = "hibiscus";
 const VALID_PASS = "hibiscus";
+
+const queryClient = new QueryClient();
+
+const DEFAULT_WORKSPACES: Tool[] = [
+  {
+    id: "default-owing",
+    title: "Owing Script Management",
+    description: "Review owing scripts, payment follow-ups, notes, and monthly exceptions.",
+    icon: "wallet",
+    url: "#",
+  },
+  {
+    id: "default-daa",
+    title: "Hibiscus DAA Program",
+    description: "Manage DAA patients, packing status, import history, and operational checks.",
+    icon: "pill",
+    url: "#",
+  },
+  {
+    id: "default-rdh",
+    title: "RDH Discharge Report",
+    description: "Prepare clean discharge reports and keep historical exports easy to recover.",
+    icon: "spreadsheet",
+    url: "#",
+  },
+  {
+    id: "default-safetynet",
+    title: "SafetyNet Management",
+    description: "Monitor SafetyNet thresholds with calm review queues and clear status signals.",
+    icon: "shield",
+    url: "#",
+  },
+  {
+    id: "default-direction",
+    title: "Direction Assistant",
+    description: "Create consistent patient directions and reusable instruction templates.",
+    icon: "clipboard",
+    url: "#",
+  },
+  {
+    id: "default-stocktake",
+    title: "Stationary Stocktaking",
+    description: "Run stock counts, check variances, and archive supply history beautifully.",
+    icon: "package",
+    url: "#",
+  },
+];
+
+const WORKSPACE_IMAGES = [
+  "https://images.unsplash.com/photo-1576602975754-efdf313b9342?auto=format&fit=crop&w=900&q=86",
+  "https://images.unsplash.com/photo-1585435557343-3b092031a831?auto=format&fit=crop&w=900&q=86",
+  "https://images.unsplash.com/photo-1559757148-5c350d0d3c56?auto=format&fit=crop&w=900&q=86",
+  "https://images.unsplash.com/photo-1576091160399-112ba8d25d1d?auto=format&fit=crop&w=900&q=86",
+  "https://images.unsplash.com/photo-1511174511562-5f7f18b874f8?auto=format&fit=crop&w=900&q=86",
+  "https://images.unsplash.com/photo-1586528116311-ad8dd3c8310d?auto=format&fit=crop&w=900&q=86",
+];
+
+const ICON_OPTIONS = [
+  { value: "shield", label: "Shield" },
+  { value: "package", label: "Package" },
+  { value: "book", label: "Book" },
+  { value: "grid", label: "Grid" },
+  { value: "star", label: "Star" },
+  { value: "bell", label: "Bell" },
+  { value: "pill", label: "Pill" },
+  { value: "wallet", label: "Wallet" },
+  { value: "spreadsheet", label: "Spreadsheet" },
+  { value: "clipboard", label: "Clipboard" },
+];
+
+function Icon({ name, className }: { name?: string; className?: string }) {
+  const common = {
+    viewBox: "0 0 24 24",
+    fill: "none",
+    stroke: "currentColor",
+    strokeWidth: 2,
+    strokeLinecap: "round" as const,
+    strokeLinejoin: "round" as const,
+    className: className ?? "icon",
+  };
+
+  switch (name) {
+    case "shield":
+      return <svg {...common}><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" /></svg>;
+    case "package":
+      return <svg {...common}><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z" /><path d="M3.27 6.96 12 12.01l8.73-5.05" /><path d="M12 22.08V12" /></svg>;
+    case "book":
+      return <svg {...common}><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20" /><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z" /></svg>;
+    case "star":
+      return <svg {...common}><path d="m12 2 3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" /></svg>;
+    case "bell":
+      return <svg {...common}><path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9" /><path d="M13.73 21a2 2 0 0 1-3.46 0" /></svg>;
+    case "wallet":
+      return <svg {...common}><path d="M20 7H5a2 2 0 0 1 0-4h12" /><path d="M3 5v14a2 2 0 0 0 2 2h15V7" /><path d="M16 14h4" /></svg>;
+    case "pill":
+      return <svg {...common}><path d="m10.5 20.5 10-10a5 5 0 0 0-7.07-7.07l-10 10a5 5 0 0 0 7.07 7.07z" /><path d="m8.5 8.5 7 7" /></svg>;
+    case "spreadsheet":
+      return <svg {...common}><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" /><path d="M14 2v6h6" /><path d="M8 13h8" /><path d="M8 17h8" /></svg>;
+    case "clipboard":
+      return <svg {...common}><rect x="8" y="2" width="8" height="4" rx="1" /><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2" /><path d="M8 12h8" /><path d="M8 16h5" /></svg>;
+    case "search":
+      return <svg {...common}><circle cx="11" cy="11" r="8" /><path d="m21 21-4.35-4.35" /></svg>;
+    case "settings":
+      return <svg {...common}><circle cx="12" cy="12" r="3" /><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z" /></svg>;
+    case "external":
+      return <svg {...common}><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6" /><path d="M15 3h6v6" /><path d="M10 14 21 3" /></svg>;
+    case "trash":
+      return <svg {...common}><path d="M3 6h18" /><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6" /><path d="M10 11v6" /><path d="M14 11v6" /><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2" /></svg>;
+    default:
+      return <svg {...common}><rect x="3" y="3" width="7" height="7" /><rect x="14" y="3" width="7" height="7" /><rect x="14" y="14" width="7" height="7" /><rect x="3" y="14" width="7" height="7" /></svg>;
+  }
+}
 
 function LoginScreen({ onLogin }: { onLogin: () => void }) {
   const [username, setUsername] = useState("");
@@ -29,246 +141,44 @@ function LoginScreen({ onLogin }: { onLogin: () => void }) {
         setError(true);
         setLoading(false);
       }
-    }, 400);
+    }, 350);
   }
 
   return (
-    <div className="login-root">
-      <div className="login-bg" />
+    <main className="login-root">
+      <div className="ambient-bg" />
       <section className="login-shell">
-        <div className="login-hero">
-          <div className="login-hero-top">
-            <div className="login-logo login-logo-pill">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" className="login-logo-icon">
-                <polyline points="22 12 18 12 15 21 9 3 6 12 2 12" />
-              </svg>
-              <span>MyPharmacyHub</span>
-            </div>
-            <span className="login-hero-badge">Enterprise pharmacy platform</span>
+        <div className="login-visual">
+          <div className="login-topline">
+            <div className="brand-chip"><Icon name="star" />MyPharmacyHub</div>
+            <span>Enterprise pharmacy platform</span>
           </div>
-          <div className="login-hero-copy">
-            <p className="login-kicker">Calm healthcare operations</p>
+          <div className="login-copy glass-dark">
+            <p>Calm healthcare operations</p>
             <h1>A premium portal for focused pharmacy work.</h1>
-            <p>
-              Secure workspaces for daily pharmacy routines, reporting, patient programs,
-              and operational follow-through.
-            </p>
+            <span>Secure workspaces for daily routines, reports, patient programs and operational follow-through.</span>
           </div>
         </div>
+
         <div className="login-panel">
-          <div className="login-card">
-            <div className="login-logo login-logo-mobile">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" className="login-logo-icon">
-                <polyline points="22 12 18 12 15 21 9 3 6 12 2 12" />
-              </svg>
-              <span>MyPharmacyHub</span>
-            </div>
-            <span className="login-card-badge">Secure staff access</span>
-            <h1 className="login-title">Welcome back.</h1>
-            <p className="login-subtitle">Sign in to continue to your pharmacy operations dashboard.</p>
-            <form className="login-form" onSubmit={handleSubmit}>
-              <label className="login-label">
-                Username
-                <input
-                  className={`login-input${error ? " login-input-error" : ""}`}
-                  type="text"
-                  autoComplete="username"
-                  value={username}
-                  onChange={(e) => { setUsername(e.target.value); setError(false); }}
-                  placeholder="Enter username"
-                  autoFocus
-                />
-              </label>
-              <label className="login-label">
-                Password
-                <input
-                  className={`login-input${error ? " login-input-error" : ""}`}
-                  type="password"
-                  autoComplete="current-password"
-                  value={password}
-                  onChange={(e) => { setPassword(e.target.value); setError(false); }}
-                  placeholder="Enter password"
-                />
-              </label>
-              {error && <p className="login-error">Incorrect username or password.</p>}
-              <button className="login-btn" type="submit" disabled={loading}>
-                {loading ? "Signing in..." : "Continue to Dashboard"}
-              </button>
-            </form>
-            <div className="login-note">
-              <strong>Temporary credentials</strong>
-              <span>Username hibiscus / Password hibiscus</span>
-            </div>
-          </div>
+          <form className="login-card glass" onSubmit={handleSubmit}>
+            <div className="mobile-brand"><Icon name="star" /><div><strong>MyPharmacyHub</strong><span>Premium healthcare portal</span></div></div>
+            <span className="soft-pill">Secure staff access</span>
+            <h2>Welcome back.</h2>
+            <p>Sign in to continue to your pharmacy operations dashboard.</p>
+            <label>Username
+              <input value={username} onChange={(e) => { setUsername(e.target.value); setError(false); }} placeholder="Enter username" autoComplete="username" autoFocus />
+            </label>
+            <label>Password
+              <input value={password} onChange={(e) => { setPassword(e.target.value); setError(false); }} placeholder="Enter password" type="password" autoComplete="current-password" />
+            </label>
+            {error && <p className="form-error">Incorrect username or password.</p>}
+            <button className="primary-btn" disabled={loading}>{loading ? "Signing in..." : "Continue to Dashboard"}</button>
+            <div className="credential-note"><strong>Temporary credentials</strong><span>Username hibiscus / Password hibiscus</span></div>
+          </form>
         </div>
       </section>
-    </div>
-  );
-}
-
-const queryClient = new QueryClient();
-
-function ShieldIcon({ className }: { className?: string }) {
-  return (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" className={className ?? "tool-icon"}>
-      <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
-    </svg>
-  );
-}
-
-function PackageIcon({ className }: { className?: string }) {
-  return (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" className={className ?? "tool-icon"}>
-      <line x1="16.5" y1="9.4" x2="7.5" y2="4.21" />
-      <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z" />
-      <polyline points="3.27 6.96 12 12.01 20.73 6.96" />
-      <line x1="12" y1="22.08" x2="12" y2="12" />
-    </svg>
-  );
-}
-
-function BookIcon({ className }: { className?: string }) {
-  return (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" className={className ?? "tool-icon"}>
-      <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20" />
-      <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z" />
-    </svg>
-  );
-}
-
-function GridIcon({ className }: { className?: string }) {
-  return (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" className={className ?? "tool-icon"}>
-      <rect x="3" y="3" width="7" height="7" />
-      <rect x="14" y="3" width="7" height="7" />
-      <rect x="14" y="14" width="7" height="7" />
-      <rect x="3" y="14" width="7" height="7" />
-    </svg>
-  );
-}
-
-function StarIcon({ className }: { className?: string }) {
-  return (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" className={className ?? "tool-icon"}>
-      <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
-    </svg>
-  );
-}
-
-function BellIcon({ className }: { className?: string }) {
-  return (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" className={className ?? "tool-icon"}>
-      <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" />
-      <path d="M13.73 21a2 2 0 0 1-3.46 0" />
-    </svg>
-  );
-}
-
-function ToolIconComponent({ icon, className }: { icon: string; className?: string }) {
-  switch (icon) {
-    case "shield": return <ShieldIcon className={className} />;
-    case "package": return <PackageIcon className={className} />;
-    case "book": return <BookIcon className={className} />;
-    case "grid": return <GridIcon className={className} />;
-    case "star": return <StarIcon className={className} />;
-    case "bell": return <BellIcon className={className} />;
-    default: return <GridIcon className={className} />;
-  }
-}
-
-function ActivityIcon() {
-  return (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" style={{ width: 16, height: 16 }}>
-      <polyline points="22 12 18 12 15 21 9 3 6 12 2 12" />
-    </svg>
-  );
-}
-
-function ExternalLinkIcon() {
-  return (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" style={{ width: 15, height: 15 }}>
-      <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6" />
-      <polyline points="15 3 21 3 21 9" />
-      <line x1="10" y1="14" x2="21" y2="3" />
-    </svg>
-  );
-}
-
-function SearchIcon() {
-  return (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" className="search-icon">
-      <circle cx="11" cy="11" r="8" />
-      <line x1="21" y1="21" x2="16.65" y2="16.65" />
-    </svg>
-  );
-}
-
-function ClearIcon() {
-  return (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.5} strokeLinecap="round" strokeLinejoin="round" style={{ width: 14, height: 14 }}>
-      <line x1="18" y1="6" x2="6" y2="18" />
-      <line x1="6" y1="6" x2="18" y2="18" />
-    </svg>
-  );
-}
-
-function TrashIcon() {
-  return (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" style={{ width: 15, height: 15 }}>
-      <polyline points="3 6 5 6 21 6" />
-      <path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6" />
-      <path d="M10 11v6M14 11v6" />
-      <path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2" />
-    </svg>
-  );
-}
-
-function SettingsIcon() {
-  return (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" style={{ width: 16, height: 16 }}>
-      <circle cx="12" cy="12" r="3" />
-      <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z" />
-    </svg>
-  );
-}
-
-const ICON_OPTIONS = [
-  { value: "shield", label: "Shield" },
-  { value: "package", label: "Package" },
-  { value: "book", label: "Book" },
-  { value: "grid", label: "Grid" },
-  { value: "star", label: "Star" },
-  { value: "bell", label: "Bell" },
-];
-
-function ToolCard({ tool, adminMode, onDelete }: { tool: Tool; adminMode: boolean; onDelete: (id: string) => void }) {
-  return (
-    <div className="tool-card">
-      <div className="tool-card-body">
-        <div className="tool-icon-wrap">
-          <ToolIconComponent icon={tool.icon} />
-        </div>
-        <h2 className="tool-title">{tool.title}</h2>
-        <p className="tool-desc">{tool.description}</p>
-        <a
-          href={tool.url}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="tool-btn"
-        >
-          Open Tool <ExternalLinkIcon />
-        </a>
-        {adminMode && (
-          <button
-            className="tool-delete-btn"
-            onClick={() => onDelete(tool.id)}
-            title="Remove tool"
-          >
-            <TrashIcon /> Remove
-          </button>
-        )}
-      </div>
-    </div>
+    </main>
   );
 }
 
@@ -276,6 +186,8 @@ const EMPTY_FORM = { title: "", description: "", icon: "shield", url: "" };
 
 function AdminPanel({ onClose }: { onClose: () => void }) {
   const qc = useQueryClient();
+  const [form, setForm] = useState(EMPTY_FORM);
+  const [error, setError] = useState<string | null>(null);
   const createTool = useCreateTool({
     mutation: {
       onSuccess: () => {
@@ -284,10 +196,8 @@ function AdminPanel({ onClose }: { onClose: () => void }) {
       },
     },
   });
-  const [form, setForm] = useState(EMPTY_FORM);
-  const [error, setError] = useState<string | null>(null);
 
-  function handleSubmit(e: React.FormEvent) {
+  function handleSubmit(e: FormEvent) {
     e.preventDefault();
     setError(null);
     if (!form.title.trim() || !form.url.trim()) {
@@ -298,220 +208,178 @@ function AdminPanel({ onClose }: { onClose: () => void }) {
   }
 
   return (
-    <div className="admin-panel">
-      <div className="admin-panel-header">
-        <h2 className="admin-panel-title">Manage Tools</h2>
-        <button className="admin-close-btn" onClick={onClose} aria-label="Close admin panel">✕</button>
+    <section className="admin-panel glass">
+      <div className="panel-heading">
+        <div><span className="soft-pill">Admin</span><h2>Manage tools</h2></div>
+        <button className="icon-btn" onClick={onClose} aria-label="Close admin panel">×</button>
       </div>
-      <p className="admin-panel-hint">
-        Add tools here — no code changes needed. Use the trash icon on any card to remove a tool.
-      </p>
+      <p className="muted">Add or remove workspaces without changing code.</p>
       <form className="admin-form" onSubmit={handleSubmit}>
-        <div className="admin-form-row">
-          <label className="admin-label">Title
-            <input
-              className="admin-input"
-              type="text"
-              placeholder="e.g. Drug Interaction Checker"
-              value={form.title}
-              onChange={(e) => setForm((f) => ({ ...f, title: e.target.value }))}
-            />
-          </label>
-          <label className="admin-label">Icon
-            <select
-              className="admin-input"
-              value={form.icon}
-              onChange={(e) => setForm((f) => ({ ...f, icon: e.target.value }))}
-            >
-              {ICON_OPTIONS.map((o) => (
-                <option key={o.value} value={o.value}>{o.label}</option>
-              ))}
-            </select>
-          </label>
+        <div className="admin-row">
+          <label>Title<input value={form.title} onChange={(e) => setForm((f) => ({ ...f, title: e.target.value }))} placeholder="e.g. Drug Interaction Checker" /></label>
+          <label>Icon<select value={form.icon} onChange={(e) => setForm((f) => ({ ...f, icon: e.target.value }))}>{ICON_OPTIONS.map((o) => <option key={o.value} value={o.value}>{o.label}</option>)}</select></label>
         </div>
-        <label className="admin-label">URL
-          <input
-            className="admin-input"
-            type="url"
-            placeholder="https://your-tool.replit.app/"
-            value={form.url}
-            onChange={(e) => setForm((f) => ({ ...f, url: e.target.value }))}
-          />
-        </label>
-        <label className="admin-label">Description
-          <textarea
-            className="admin-input admin-textarea"
-            placeholder="Brief description of what this tool does"
-            value={form.description}
-            onChange={(e) => setForm((f) => ({ ...f, description: e.target.value }))}
-          />
-        </label>
-        {error && <p className="admin-error">{error}</p>}
-        {createTool.error && <p className="admin-error">Failed to add tool. Please try again.</p>}
-        <button
-          type="submit"
-          className="admin-submit-btn"
-          disabled={createTool.isPending}
-        >
-          {createTool.isPending ? "Adding…" : "+ Add Tool"}
-        </button>
+        <label>URL<input value={form.url} onChange={(e) => setForm((f) => ({ ...f, url: e.target.value }))} placeholder="https://your-tool.example.com" type="url" /></label>
+        <label>Description<textarea value={form.description} onChange={(e) => setForm((f) => ({ ...f, description: e.target.value }))} placeholder="Brief description of what this tool does" /></label>
+        {error && <p className="form-error">{error}</p>}
+        {createTool.error && <p className="form-error">Failed to add tool. Please try again.</p>}
+        <button className="primary-btn small" disabled={createTool.isPending}>{createTool.isPending ? "Adding..." : "+ Add Tool"}</button>
       </form>
-    </div>
+    </section>
+  );
+}
+
+function WorkspaceCard({ tool, index, adminMode, onDelete }: { tool: Tool; index: number; adminMode: boolean; onDelete: (id: string) => void }) {
+  const image = WORKSPACE_IMAGES[index % WORKSPACE_IMAGES.length];
+  const isPlaceholder = tool.url === "#";
+
+  return (
+    <article className="workspace-card glass">
+      <div className="workspace-image" style={{ backgroundImage: `linear-gradient(to top, rgba(28,25,23,.42), rgba(28,25,23,.04)), url(${image})` }}>
+        <div className="icon-badge"><Icon name={tool.icon} /></div>
+        <span className="stage-badge">0{index + 1}</span>
+      </div>
+      <div className="workspace-body">
+        <h3>{tool.title}</h3>
+        <p>{tool.description}</p>
+        <div className="metric-row">
+          <div><span>Current</span><strong>{index % 2 === 0 ? "Active" : "Ready"}</strong></div>
+          <div><span>Queue</span><strong>{index + 3} items</strong></div>
+        </div>
+        <div className="card-actions">
+          <a className={`workspace-link${isPlaceholder ? " disabled" : ""}`} href={tool.url} target={isPlaceholder ? undefined : "_blank"} rel="noopener noreferrer" onClick={(e) => { if (isPlaceholder) e.preventDefault(); }}>
+            Open Workspace <Icon name="external" />
+          </a>
+          {adminMode && !tool.id.startsWith("default-") && <button className="remove-btn" onClick={() => onDelete(tool.id)}><Icon name="trash" />Remove</button>}
+        </div>
+      </div>
+    </article>
+  );
+}
+
+function PreviewCard({ tool, index }: { tool: Tool; index: number }) {
+  return (
+    <article className="preview-card glass">
+      <div className="preview-heading">
+        <div className="icon-badge"><Icon name={tool.icon} /></div>
+        <div><strong>{tool.title}</strong><span>{index % 2 === 0 ? "Review" : "Active"} workspace</span></div>
+      </div>
+      <div className="preview-metrics">
+        <div className="dark-metric"><span>Primary metric</span><strong>{index + 12} records</strong></div>
+        <div><span>Attention</span><strong>{index + 2} checks</strong></div>
+      </div>
+      <ol>
+        <li>Open workspace</li>
+        <li>Review imported data</li>
+        <li>Export clean report</li>
+      </ol>
+    </article>
   );
 }
 
 function HubContent({ onLogout }: { onLogout: () => void }) {
   const { data: tools, isLoading, isError } = useListTools();
   const qc = useQueryClient();
-  const deleteTool = useDeleteTool({
-    mutation: {
-      onSuccess: () => qc.invalidateQueries({ queryKey: ["/api/tools"] }),
-    },
-  });
+  const deleteTool = useDeleteTool({ mutation: { onSuccess: () => qc.invalidateQueries({ queryKey: ["/api/tools"] }) } });
   const [adminOpen, setAdminOpen] = useState(false);
   const [query, setQuery] = useState("");
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
 
-  const filtered = (tools ?? []).filter((t: Tool) => {
-    const q = query.toLowerCase();
-    return t.title.toLowerCase().includes(q) || t.description.toLowerCase().includes(q);
+  const allTools = useMemo(() => {
+    const liveTools = tools ?? [];
+    return liveTools.length > 0 ? liveTools : DEFAULT_WORKSPACES;
+  }, [tools]);
+
+  const filtered = allTools.filter((tool) => {
+    const q = query.trim().toLowerCase();
+    return !q || tool.title.toLowerCase().includes(q) || tool.description.toLowerCase().includes(q);
   });
 
   function handleDelete(id: string) {
-    if (confirm("Remove this tool from the hub?")) {
-      deleteTool.mutate({ id });
-    }
+    if (confirm("Remove this tool from the hub?")) deleteTool.mutate({ id });
   }
 
   return (
-    <div className="hub-root">
-      <div className="hub-bg" />
-      <header className="hub-header">
-        <div className="hub-header-inner">
-          <div className="hub-logo">
-            <ActivityIcon />
-            <div>
-              <span>MyPharmacyHub</span>
-              <small>Premium healthcare portal</small>
-            </div>
-          </div>
-          <div className="hub-actions">
-            <button
-              className={`admin-toggle-btn${adminOpen ? " active" : ""}`}
-              onClick={() => setAdminOpen((o) => !o)}
-              title="Admin panel"
-            >
-              <SettingsIcon />
-              <span>Admin</span>
-            </button>
-            <button className="logout-btn" onClick={onLogout} title="Sign out">
-              Sign Out
-            </button>
-          </div>
+    <main className="hub-root">
+      <div className="ambient-bg" />
+      <aside className={`sidebar glass ${sidebarCollapsed ? "collapsed" : ""}`}>
+        <div className="sidebar-brand">
+          <div className="brand-mark"><Icon name="star" /></div>
+          <div><strong>MyPharmacyHub</strong><span>Premium healthcare portal</span></div>
         </div>
-      </header>
+        <button className="collapse-btn" onClick={() => setSidebarCollapsed((v) => !v)}>{sidebarCollapsed ? "→" : "←"}</button>
+        <nav>
+          <button className="active"><Icon name="grid" />Dashboard</button>
+          <button><Icon name="spreadsheet" />Reports</button>
+          <button><Icon name="shield" />Programs</button>
+          <button><Icon name="settings" />Settings</button>
+        </nav>
+        <div className="focus-card"><span>Today's focus</span><p>Review monthly program reports and keep workspaces up to date.</p></div>
+      </aside>
 
-      {adminOpen && <AdminPanel onClose={() => setAdminOpen(false)} />}
+      <section className="dashboard-shell">
+        <header className="topbar glass">
+          <div><span className="eyebrow">Enterprise pharmacy platform</span><h1>Dashboard</h1></div>
+          <div className="top-actions">
+            <div className="search-box"><Icon name="search" /><input value={query} onChange={(e) => setQuery(e.target.value)} placeholder="Search workspaces, reports, patients" /></div>
+            <button className="secondary-btn" onClick={() => setAdminOpen((v) => !v)}><Icon name="settings" />Admin</button>
+            <button className="secondary-btn danger" onClick={onLogout}>Sign out</button>
+          </div>
+        </header>
 
-      <main className="hub-main">
-        <section className="hub-hero">
-          <div className="hub-hero-copy">
-            <span className="hub-eyebrow">Enterprise pharmacy platform</span>
-            <h1 className="hub-title">A softer way to run every pharmacy workflow.</h1>
-            <p className="hub-subtitle">
-              Central access for clinical tools, patient programs, reporting and operational routines.
-            </p>
-            <div className="hub-hero-stats">
-              <div><strong>{tools?.length ?? "-"}</strong><span>Active tools</span></div>
-              <div><strong>{filtered.length}</strong><span>Visible now</span></div>
-              <div><strong>Secure</strong><span>Staff workspace</span></div>
-            </div>
-          </div>
-          <div className="hub-hero-image">
-            <div className="hub-hero-status">
-              <span>Workspace status</span>
-              <strong>{isLoading ? "Loading" : "Ready"}</strong>
-            </div>
-          </div>
-        </section>
+        {adminOpen && <AdminPanel onClose={() => setAdminOpen(false)} />}
 
-        <section className="hub-toolbar">
-          <div>
-            <span className="hub-section-label">Portal tools</span>
-            <h2>Operational workspaces</h2>
+        <section className="hero-grid">
+          <div className="hero-card glass">
+            <span className="soft-pill">Calm operations, premium clarity</span>
+            <h2>A softer way to run every pharmacy workflow.</h2>
+            <p>Minimal workspaces for Owing, DAA, Discharge, SafetyNet, directions, and stationary stocktaking. Designed to feel calm, fast, and enterprise-ready.</p>
+            <div className="hero-actions"><button className="primary-btn">Open Dashboard</button><button className="ghost-btn">View Reports</button></div>
           </div>
-          <div className="search-field">
-            <SearchIcon />
-            <input
-              type="text"
-              className="search-input"
-              placeholder="Search tools…"
-              value={query}
-              onChange={(e) => setQuery(e.target.value)}
-              aria-label="Search tools"
-            />
-            {query && (
-              <button
-                className="search-clear"
-                onClick={() => setQuery("")}
-                aria-label="Clear search"
-              >
-                <ClearIcon />
-              </button>
-            )}
+          <div className="photo-card">
+            <div className="photo-status glass-dark"><span>Workspace status</span><strong>{isLoading ? "Loading" : `${allTools.length} modules`}</strong><em>No AI Assistant</em></div>
           </div>
         </section>
 
-        {isLoading && (
-          <div className="hub-status">Loading tools…</div>
-        )}
+        <section className="stat-strip">
+          <div className="glass"><Icon name="shield" /><span>Data saved</span><strong>Server-ready</strong></div>
+          <div className="glass"><Icon name="spreadsheet" /><span>Monthly history</span><strong>Versioned</strong></div>
+          <div className="glass"><Icon name="pill" /><span>Patient workflows</span><strong>{allTools.length} areas</strong></div>
+          <div className="glass"><Icon name="bell" /><span>Review rhythm</span><strong>Daily</strong></div>
+        </section>
 
-        {isError && (
-          <div className="hub-status hub-error">
-            Could not load tools. Please check the API server.
-          </div>
-        )}
+        <section className="section-heading">
+          <div><span className="eyebrow">Portal modules</span><h2>Premium workspaces</h2></div>
+          <p>Each workspace keeps the product minimal: one image, one purpose, one clear action.</p>
+        </section>
 
-        {tools && (
-          filtered.length > 0 ? (
-            <div className="tools-grid">
-              {filtered.map((tool: Tool) => (
-                <ToolCard key={tool.id} tool={tool} adminMode={adminOpen} onDelete={handleDelete} />
-              ))}
-            </div>
-          ) : (
-            <div className="empty-state">
-              <div className="empty-state-icon">
-                <SearchIcon />
-              </div>
-              <p className="empty-state-title">
-                {query ? "No tools found" : "No tools configured. Use the Admin panel to add one."}
-              </p>
-              {query && (
-                <p className="empty-state-sub">
-                  Try a different keyword, or{" "}
-                  <button className="empty-state-clear" onClick={() => setQuery("")}>
-                    clear the search
-                  </button>
-                </p>
-              )}
-            </div>
-          )
-        )}
-      </main>
+        {isError && <div className="status-error glass">Could not load live tools. Showing default workspace layout.</div>}
 
-      <footer className="hub-footer">
-        <p>© {new Date().getFullYear()} MyPharmacyHub &mdash; Internal Use Only</p>
-      </footer>
-    </div>
+        <section className="workspace-grid">
+          {filtered.map((tool, index) => <WorkspaceCard key={tool.id} tool={tool} index={index} adminMode={adminOpen} onDelete={handleDelete} />)}
+        </section>
+
+        <section className="section-heading lower">
+          <div><span className="eyebrow">Workspace previews</span><h2>Every module has a clear operating rhythm</h2></div>
+          <p>The visual shell, navigation, and card system remain consistent across the portal.</p>
+        </section>
+
+        <section className="preview-grid">
+          {filtered.slice(0, 4).map((tool, index) => <PreviewCard key={`${tool.id}-preview`} tool={tool} index={index} />)}
+        </section>
+
+        <footer className="hub-footer">© {new Date().getFullYear()} MyPharmacyHub — Internal Use Only</footer>
+      </section>
+
+      <nav className="mobile-nav glass"><button className="active"><Icon name="grid" />Dashboard</button><button><Icon name="spreadsheet" />Reports</button><button><Icon name="shield" />Programs</button><button><Icon name="settings" />Settings</button></nav>
+    </main>
   );
 }
 
 function App() {
   const [authed, setAuthed] = useState(() => localStorage.getItem(AUTH_KEY) === "1");
 
-  if (!authed) {
-    return <LoginScreen onLogin={() => setAuthed(true)} />;
-  }
+  if (!authed) return <LoginScreen onLogin={() => setAuthed(true)} />;
 
   return (
     <QueryClientProvider client={queryClient}>
