@@ -1,20 +1,23 @@
-name: Publish MyPharmacyHub UI
+name: Check MyPharmacyHub UI
 
 on:
   push:
     branches:
       - main
+  pull_request:
+    branches:
+      - main
   workflow_dispatch:
 
 permissions:
-  contents: write
+  contents: read
 
 concurrency:
-  group: publish-ui
+  group: check-ui
   cancel-in-progress: true
 
 jobs:
-  publish:
+  build:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout source
@@ -38,16 +41,3 @@ jobs:
         run: pnpm --filter @workspace/pharmacy-hub run build
         env:
           BASE_PATH: /
-
-      - name: Prepare static output
-        run: |
-          cp artifacts/pharmacy-hub/dist/public/index.html artifacts/pharmacy-hub/dist/public/404.html
-          touch artifacts/pharmacy-hub/dist/public/.nojekyll
-          echo "mypharmacyhub.net" > artifacts/pharmacy-hub/dist/public/CNAME
-
-      - name: Publish static output to gh-pages
-        uses: JamesIves/github-pages-deploy-action@v4
-        with:
-          branch: gh-pages
-          folder: artifacts/pharmacy-hub/dist/public
-          clean: true
